@@ -13,6 +13,7 @@
       {{!-- Display relevant routes for non-authenticated vs. authenticated user --}}
       {{#if user}}
         <a href="/">{{user.name}}'s Profile</a>
+        <a href="/post/create">Create</a>
         <form action="/sign-out" method="POST">
           <button>Sign Out</button>
         </form>

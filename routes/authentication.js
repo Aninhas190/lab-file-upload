@@ -1,8 +1,25 @@
 const { Router } = require('express');
 const router = new Router();
+//pictures
+const multer = require('multer');
+const cloudinary = require('cloudinary');
+const multerStorageCloudinary = require('multer-storage-cloudinary');
 
 const User = require('./../models/user');
 const bcryptjs = require('bcryptjs');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = multerStorageCloudinary({
+  cloudinary,
+  folder: 'file-upload'
+});
+
+const uploader = multer({ storage });
 
 router.get('/', (req, res, next) => {
   res.render('index');
@@ -12,22 +29,25 @@ router.get('/sign-up', (req, res, next) => {
   res.render('sign-up');
 });
 
-router.post('/sign-up', (req, res, next) => {
+router.post('/sign-up', uploader.single('profilePicture'), (req, res, next) => {
   const { name, email, password } = req.body;
+  console.log(req.body);
+  const profilePicture = req.file.url;
   bcryptjs
     .hash(password, 10)
-    .then(hash => {
+    .then((hash) => {
       return User.create({
         name,
         email,
-        passwordHash: hash
+        passwordHash: hash,
+        profilePicture
       });
     })
-    .then(user => {
+    .then((user) => {
       req.session.user = user._id;
       res.redirect('/');
     })
-    .catch(error => {
+    .catch((error) => {
       next(error);
     });
 });
@@ -40,7 +60,7 @@ router.post('/sign-in', (req, res, next) => {
   let userId;
   const { email, password } = req.body;
   User.findOne({ email })
-    .then(user => {
+    .then((user) => {
       if (!user) {
         return Promise.reject(new Error("There's no user with that email."));
       } else {
@@ -48,7 +68,7 @@ router.post('/sign-in', (req, res, next) => {
         return bcryptjs.compare(password, user.passwordHash);
       }
     })
-    .then(result => {
+    .then((result) => {
       if (result) {
         req.session.user = userId;
         res.redirect('/');
@@ -56,7 +76,7 @@ router.post('/sign-in', (req, res, next) => {
         return Promise.reject(new Error('Wrong password.'));
       }
     })
-    .catch(error => {
+    .catch((error) => {
       next(error);
     });
 });

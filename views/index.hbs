@@ -1,1 +1,12 @@
 <p>Welcome to our Lab!</p>
+
+{{#each posts}}
+  
+  <article>
+    <small>{{creatorId.name}}</small>
+    <h3>{{title}}</h3>
+    <img src="{{pictureUrl}}" alt="{{title}}">
+    <p>{{content}}</p>
+  </article>
+
+{{/posts}}
